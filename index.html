@@ -250,6 +250,47 @@ input.chk{width:22px;height:22px;accent-color:var(--primary);cursor:pointer}
   .kpis{grid-template-columns:1fr}
   .btn{padding:0 14px}
 }
+
+/* ===== Versión con más color: ambiente de laboratorio ===== */
+:root{--bg:#CFE6E8;--tint:#C4E5E8;--line:#B4D2D6;--surface-2:#E6F3F4}
+body{
+  background-image:
+    radial-gradient(circle at 12% 8%,rgba(230,167,0,.18),transparent 32%),
+    radial-gradient(circle at 92% 30%,rgba(47,181,107,.16),transparent 34%),
+    linear-gradient(rgba(8,76,86,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(8,76,86,.09) 1px,transparent 1px);
+  background-size:auto,auto,24px 24px,24px 24px;background-attachment:fixed}
+/* Cabecera: bloque turquesa intenso con texto blanco */
+.top{background:linear-gradient(100deg,#084C56 0%,#0C6E7A 55%,#13909A 100%);border-bottom:0;box-shadow:0 4px 18px rgba(8,76,86,.35)}
+.top h1{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+.who-t b{color:#fff}.who-t small{color:#BFE6EA}
+.avatar{background:var(--gold);color:#3A2600;box-shadow:0 0 0 3px rgba(255,255,255,.35)}
+.who select{background:rgba(255,255,255,.95);border-color:transparent}
+/* Barra lateral con más profundidad */
+.side{background:linear-gradient(180deg,#06222B 0%,#0A3C4A 55%,#0C6E7A 130%);border-right:0;box-shadow:4px 0 18px rgba(6,34,43,.3)}
+.nav button[aria-current="page"]{background:linear-gradient(90deg,rgba(230,167,0,.25),rgba(255,255,255,.1))}
+/* Tarjetas con encabezado coloreado */
+.card{border-top:0;border-left:6px solid var(--primary);background:linear-gradient(180deg,#fff 0%,#F6FBFB 100%)}
+.card h2{margin:-20px -20px 16px -20px;padding:12px 20px;background:linear-gradient(90deg,var(--tint),#E6F3F4);border-bottom:1px solid var(--line);border-radius:0 var(--r) 0 0;color:var(--primary-d)}
+.card:nth-of-type(2n){border-left-color:var(--gold)}
+.card:nth-of-type(3n){border-left-color:var(--ok)}
+.charts .card{border-left-color:var(--primary)}
+@media (max-width:900px){.card h2{margin:-16px -16px 14px -16px;padding:11px 16px}}
+/* Botones con degradado */
+.btn:not(.ghost):not(.ok):not(.bad){background:linear-gradient(135deg,#13909A,#0A5D68);border-color:#0A5D68;box-shadow:0 3px 10px rgba(12,110,122,.35)}
+.btn.ok{background:linear-gradient(135deg,#3FD083,#25A15F);box-shadow:0 3px 10px rgba(47,181,107,.35);border-color:#25A15F}
+.btn.ghost{background:#fff;border-color:var(--primary)}
+.page-h p{background:rgba(255,255,255,.7);border-left:4px solid var(--gold);padding:8px 12px;border-radius:0 10px 10px 0;color:var(--ink)}
+.filters .in,.in{background:#fff}
+.tbl-wrap{border-color:#9CC6CB}
+th{background:linear-gradient(90deg,#084C56,#0C6E7A)}
+tbody tr:nth-child(even) td{background:#EAF6F7}
+.kpi{background:#fff;border-top:4px solid var(--primary)}
+.kpi:nth-child(2){border-top-color:var(--ok)}.kpi:nth-child(3){border-top-color:var(--gold)}
+.kpi:nth-child(1){background:linear-gradient(135deg,#fff,#DDF0F1)}
+.kpi:nth-child(2){background:linear-gradient(135deg,#fff,#DFF5E8)}
+.kpi:nth-child(3){background:linear-gradient(135deg,#fff,#FFF0C9)}
+.kpi:nth-child(4){background:linear-gradient(135deg,#fff,#D4E9EC)}
+.submit-bar{background:linear-gradient(180deg,rgba(207,230,232,0),#CFE6E8 30%)}
 </style>
 </head>
 <body>
