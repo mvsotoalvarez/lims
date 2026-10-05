@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230B3C5D'/%3E%3Cpath d='M10 4v6l-4 8a1.5 1.5 0 0 0 1.3 2h9.4a1.5 1.5 0 0 0 1.3-2l-4-8V4M9 4h6' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="description" content="Prototipo de LIMS para el Instituto de Catálisis y Petroleoquímica (ICP-UAM).">
+<title>LIMS ICP-UAM</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* Layout: barra institucional azul + pestañas; en móvil la navegación pasa a una barra inferior con zonas táctiles grandes (uso con guantes). */
+/* Sistema blanco: barra lateral y cabecera blancas, fondo gris muy claro, tarjetas blancas, azul institucional como acento. */
+:root{
+  --bg:#F6F8FA; --surface:#FFFFFF; --surface-2:#F0F3F6; --ink:#1B2733; --muted:#66768A; --line:#E4E9EE; --tint:#E9F1F7;
+  --primary:#0B3C5D; --on-primary:#FFFFFF; --link:#0B3C5D; --focus:#B8912F;
+  --ok:#2ECC71; --ok-ink:#0C6B38; --ok-bg:#E3F7EB;
+  --warn-ink:#8A5A00; --warn-bg:#FFF3D6; --bad:#B3261E; --bad-bg:#FCE8E6;
+  --gold:#B8912F; --silver:#AEB8C2;
+  --font:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  --shadow:0 1px 2px rgba(16,34,47,.04);
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+img{max-width:100%}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--font);margin:0;padding-inline:0}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{text-wrap:balance;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+
+/* Estructura */
+.app{display:grid;grid-template-columns:256px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;align-self:start;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:24px;padding:20px 14px;padding-top:calc(20px + env(safe-area-inset-top,0px))}
+.brand{display:flex;align-items:center;gap:12px;padding:0 8px;color:var(--primary)}
+.logo{width:40px;height:40px;flex:none}
+.brand b{display:block;font-size:17px;font-weight:700;letter-spacing:.01em;line-height:1.15;color:var(--ink)}
+.brand span{display:block;font-size:12px;color:var(--muted);line-height:1.25}
+.nav{display:flex;flex-direction:column;gap:6px}
+.nav button{display:flex;align-items:center;gap:12px;min-height:54px;padding:0 16px;border:0;border-radius:10px;background:none;cursor:pointer;font-weight:600;color:var(--muted);text-align:left}
+.nav button:hover{background:var(--surface-2)}
+.nav button[aria-current="page"]{background:var(--tint);color:var(--primary)}
+.nav .badge{margin-left:auto;background:var(--gold);color:#fff;border-radius:99px;font-size:12px;padding:1px 8px;font-weight:700}
+.side-foot{margin-top:auto;padding:0 8px;font-size:12px;color:var(--muted)}
+.col{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-in{padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;min-height:76px}
+.top h1{font-size:24px;font-weight:700;min-width:0}
+.who{display:flex;align-items:center;gap:12px;min-width:0}
+.who select{height:48px;min-width:260px;max-width:100%;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:0 12px;font-weight:600}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--tint);color:var(--primary);display:grid;place-items:center;font-weight:700;flex:none}
+.who-t{line-height:1.25;min-width:0}
+.who-t b{display:block;font-weight:600;white-space:nowrap}
+.who-t small{color:var(--muted);font-size:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+main{padding:24px 28px 48px;max-width:1280px;width:100%}
+.page-h{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.page-h p{color:var(--muted);max-width:60ch}
+
+/* Tarjetas y formularios */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:var(--shadow);min-width:0}
+.card+.card{margin-top:16px}
+.card h2{font-size:17px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.card h2 .step{font-family:var(--mono);font-size:12px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:2px 7px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>label,.lbl{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.in{height:52px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);padding:0 14px;width:100%;min-width:0}
+textarea.in{height:auto;min-height:110px;padding:12px 14px;resize:vertical}
+.in:focus{border-color:var(--primary)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:56px;padding:0 22px;border-radius:12px;border:1.5px solid var(--primary);background:var(--primary);color:var(--on-primary);font-weight:600;cursor:pointer;font-size:16px;text-align:center}
+.btn.ghost{background:transparent;color:var(--link)}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#06301A}
+.btn.bad{background:transparent;border-color:var(--bad);color:var(--bad)}
+.btn.sm{min-height:44px;padding:0 14px;font-size:14px;border-radius:10px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.listening{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.listening svg{animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.25)}}
+@media (prefers-reduced-motion:reduce){.btn.listening svg{animation:none}}
+.row-actions{display:flex;gap:12px;flex-wrap:wrap}
+.hint{font-size:13px;color:var(--muted)}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{min-height:52px;padding:0 16px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);cursor:pointer;font-weight:600;flex:1 1 140px}
+.seg button[aria-pressed="true"]{border-color:var(--primary);background:var(--primary);color:var(--on-primary)}
+
+/* Reactivos */
+.reag{border:1.5px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);position:relative}
+.reag+.reag{margin-top:12px}
+.reag-grid{display:grid;gap:10px;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,.9fr) minmax(0,.8fr)}
+.sugg{position:absolute;left:0;right:0;top:100%;z-index:20;background:var(--surface);border:1.5px solid var(--primary);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.22);max-height:260px;overflow:auto;margin-top:4px}
+.sugg button{display:flex;justify-content:space-between;gap:10px;width:100%;min-height:50px;align-items:center;padding:6px 14px;border:0;background:none;text-align:left;cursor:pointer}
+.sugg button:hover,.sugg button:focus-visible{background:var(--surface-2)}
+.sugg small{color:var(--muted)}
+.calc{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);font-size:13px;color:var(--muted)}
+.calc b{color:var(--ink);font-family:var(--mono);font-weight:500}
+
+.rm{margin-left:auto;width:44px;height:44px;border:0;background:none;color:var(--muted);cursor:pointer;border-radius:8px;display:grid;place-items:center}
+.rm:hover{color:var(--bad)}
+.result{background:var(--tint);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:16px;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.result div span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.result div b{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--primary)}
+.thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.thumbs img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.submit-bar{position:sticky;bottom:0;z-index:10;margin-top:16px;display:flex;gap:12px;flex-wrap:wrap;background:var(--bg);padding:12px 0}
+
+/* Estados */
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:3px 11px;font-size:12px;font-weight:700;white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.pend{background:var(--warn-bg);color:var(--warn-ink)}
+.pill.ok{background:var(--ok-bg);color:var(--ok-ink)}
+.pill.rej{background:var(--bad-bg);color:var(--bad)}
+
+/* Tablas */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:1040px}
+th{font-size:13px;font-weight:600;color:var(--ink);text-align:left;padding:14px;background:var(--surface);white-space:nowrap}
+td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:middle}
+tr.sel td{background:var(--surface-2)}
+td .id{font-family:var(--mono);font-weight:600;color:var(--link);white-space:nowrap}
+td.nw{white-space:nowrap}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.filters .in{height:48px;flex:1 1 170px;max-width:260px}
+.detail{margin-top:16px}
+.kv{display:grid;gap:10px 18px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:14px}
+.kv div span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.kv div b{font-weight:600}
+.note{background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.note.bad{background:var(--bad-bg);color:var(--bad)}
+.empty{padding:34px 16px;text-align:center;color:var(--muted)}
+
+/* Dashboard */
+.kpis{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.kpi b{font-family:var(--mono);font-weight:500;font-size:28px;color:var(--link)}
+.kpi small{color:var(--muted);margin-left:4px}
+.charts{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr))}
+.charts .card+.card{margin-top:0}
+.cbox{position:relative;height:300px}
+.cbox.tall{height:340px}
+
+input.chk{width:22px;height:22px;accent-color:var(--primary);cursor:pointer}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:16px}
+.pg-nav,.pg-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pg-info{color:var(--muted);font-size:14px;gap:12px}
+.pg{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:600;font-size:16px}
+.pg[aria-current="true"]{background:var(--primary);border-color:var(--primary);color:#fff}
+.pg:disabled{opacity:.45;cursor:not-allowed}
+/* Toast y navegación móvil */
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:28px;background:var(--ink);color:#fff;padding:14px 20px;border-radius:12px;font-weight:600;z-index:60;max-width:calc(100% - 32px);box-shadow:0 8px 30px rgba(0,0,0,.3)}
+.mnav{display:none}
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{display:none}
+  .mnav{display:grid;grid-template-columns:repeat(var(--n,3),1fr);position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .mnav button{min-height:68px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer}
+  .mnav button[aria-current="page"]{color:var(--primary);background:var(--tint)}
+  .top-in{padding:10px 16px;min-height:64px}
+  .top h1{font-size:19px}
+  .who{flex:1 1 170px;justify-content:flex-end}
+  .who-t{display:none}
+  .who select{min-width:0;width:100%;max-width:300px}
+  main{padding:16px 16px 110px}
+  .submit-bar{bottom:calc(68px + env(safe-area-inset-bottom,0px));flex-wrap:nowrap}
+  .submit-bar .btn{flex:1 1 0;padding:0 12px;font-size:15px}
+  .toast{bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+  .reag-grid{grid-template-columns:1fr 1fr}
+  .reag-grid .f-name{grid-column:1/-1}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><rect x="1" y="1" width="46" height="46" rx="10" fill="none" stroke="#B8912F" stroke-width="2"/><path d="M19 8h10M21 8v11L11 37a4 4 0 0 0 3.5 6h19A4 4 0 0 0 37 37L27 19V8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 33h18" stroke="#B8912F" stroke-width="2.6" stroke-linecap="round"/><circle cx="21" cy="28" r="1.8" fill="#AEB8C2"/><circle cx="27" cy="30" r="1.4" fill="#AEB8C2"/></svg>
+      <div><b>LIMS · ICP-UAM</b><span>Instituto de Catálisis y Petroleoquímica</span></div>
+    </div>
+    <nav class="nav" id="nav" aria-label="Secciones"></nav>
+    <div class="side-foot">Prototipo funcional · datos de ejemplo</div>
+  </aside>
+  <div class="col">
+    <header class="top"><div class="top-in">
+      <h1 id="pageTitle"></h1>
+      <div class="who">
+        <label class="sr" for="role">Perfil</label>
+        <select id="role"></select>
+        <div class="avatar" id="avatar" aria-hidden="true"></div>
+        <div class="who-t"><b id="whoName"></b><small id="whoRole"></small></div>
+      </div>
+    </div></header>
+    <main id="view"></main>
+  </div>
+</div>
+<nav class="mnav" id="mnav" aria-label="Secciones"></nav>
+<div id="toast" class="toast" role="status" hidden></div>
+<script>
+/* ---------- Iconos (trazo tipo Lucide) ---------- */
+const IC={
+ flask:'<path d="M10 2v7.5L4.5 19a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9.5V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/>',
+ check:'<path d="M20 6 9 17l-5-5"/>',
+ clip:'<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+ chart:'<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16v-5"/><path d="M12 16V7"/><path d="M17 16v-8"/>',
+ list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+ mic:'<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/>',
+ cam:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.5"/>',
+ plus:'<path d="M12 5v14M5 12h14"/>',
+ x:'<path d="M18 6 6 18M6 6l12 12"/>',
+ send:'<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>',
+ sheet:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/>',
+ sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+ moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+ eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+ msg:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'
+};
+const ico=(n,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]}</svg>`;
+
+/* ---------- Datos de referencia ---------- */
+const ROLES={
+ admin:{label:'Admin / Investigador Principal',who:'Dr. Álvaro Quesada',type:null,tabs:['panel','dash','nuevo','mios']},
+ t1:{label:'Técnico 1 · Preparación y Síntesis',who:'Marta Ruiz',type:'sint',tabs:['nuevo','mios']},
+ t2:{label:'Técnico 2 · Caracterización',who:'Daniel Ortega',type:'carac',tabs:['nuevo','mios']},
+ t3:{label:'Técnico 3 · Actividad catalítica',who:'Lucía Navarro',type:'act',tabs:['nuevo','mios']}
+};
+const TYPES={sint:'Síntesis de catalizador',carac:'Caracterización',act:'Ensayo de actividad'};
+const TECH_SHORT={t1:'Técnico 1',t2:'Técnico 2',t3:'Técnico 3',admin:'Admin'};
+const PROJECTS=['HIDRO-CO2 · Hidrogenación de CO₂','ZEO-CRAQ · Craqueo sobre zeolitas','REF-SECO · Reformado seco de CH₄','HDS-NEXT · Hidrodesulfuración'];
+const PCODE=p=>p.split(' · ')[0];
+/* mw g/mol · rho g/mL (líquidos) · pur pureza % · role · metal {s,mw} */
+const REAG=[
+ {k:'H2PtCl6',n:'H₂PtCl₆·6H₂O',alt:'ácido hexacloroplatínico',mw:517.90,role:'precursor',pur:100,metal:{s:'Pt',mw:195.084}},
+ {k:'Al2O3',n:'Al₂O₃ (γ-alúmina)',alt:'soporte',mw:101.96,role:'soporte',pur:100},
+ {k:'ZeoY',n:'Zeolita Y (H-form)',alt:'soporte, sin masa molar única',mw:null,role:'soporte',pur:100},
+ {k:'EtOH',n:'Etanol',alt:'solvente',mw:46.07,rho:0.789,role:'solvente',pur:100},
+ {k:'H2O',n:'Agua desionizada',alt:'solvente',mw:18.015,rho:0.997,role:'solvente',pur:100},
+ {k:'NiNO3',n:'Ni(NO₃)₂·6H₂O',alt:'precursor de níquel',mw:290.79,role:'precursor',pur:100,metal:{s:'Ni',mw:58.693}},
+ {k:'PdNO3',n:'Pd(NO₃)₂',alt:'precursor de paladio',mw:230.43,role:'precursor',pur:100,metal:{s:'Pd',mw:106.42}},
+ {k:'CoNO3',n:'Co(NO₃)₂·6H₂O',alt:'precursor de cobalto',mw:291.03,role:'precursor',pur:100,metal:{s:'Co',mw:58.933}},
+ {k:'CuNO3',n:'Cu(NO₃)₂·3H₂O',alt:'precursor de cobre',mw:241.60,role:'precursor',pur:100,metal:{s:'Cu',mw:63.546}},
+ {k:'FeNO3',n:'Fe(NO₃)₃·9H₂O',alt:'precursor de hierro',mw:404.00,role:'precursor',pur:100,metal:{s:'Fe',mw:55.845}},
+ {k:'SiO2',n:'SiO₂ (SBA-15)',alt:'soporte',mw:60.08,role:'soporte',pur:100},
+ {k:'TiO2',n:'TiO₂ (P25)',alt:'soporte',mw:79.866,role:'soporte',pur:100},
+ {k:'ZrO2',n:'ZrO₂',alt:'soporte',mw:123.22,role:'soporte',pur:100},
+ {k:'HNO3',n:'HNO₃ (65 %)',alt:'ácido',mw:63.01,rho:1.39,role:'ácido',pur:65},
+ {k:'NH3',n:'NH₃ (aq, 25 %)',alt:'amoníaco',mw:17.03,rho:0.91,role:'base',pur:25},
+ {k:'NaOH',n:'NaOH',alt:'base',mw:40.00,role:'base',pur:100},
+ {k:'Na2CO3',n:'Na₂CO₃',alt:'agente precipitante',mw:105.99,role:'base',pur:100},
+ {k:'Tol',n:'Tolueno',alt:'solvente',mw:92.14,rho:0.867,role:'solvente',pur:100},
+ {k:'Hept',n:'n-Heptano',alt:'solvente',mw:100.21,rho:0.684,role:'solvente',pur:100},
+ {k:'iPrOH',n:'2-Propanol',alt:'solvente',mw:60.10,rho:0.786,role:'solvente',pur:100}
+];
+const RBY=Object.fromEntries(REAG.map(r=>[r.k,r]));
+const SUBST={
+ sint:{label:'Datos de la síntesis',fields:[
+  {id:'metodo',l:'Método',t:'sel',o:['Impregnación húmeda incipiente','Coprecipitación','Sol-gel','Intercambio iónico','Deposición-precipitación']},
+  {id:'tcal',l:'T calcinación (°C)',t:'num',ph:'500'},{id:'dur',l:'Duración (h)',t:'num',ph:'4'},{id:'yield',l:'Rendimiento (%)',t:'num',ph:'92'}]},
+ carac:{label:'Datos de la caracterización',fields:[
+  {id:'tecnica',l:'Técnica',t:'sel',o:['DRX','Fisisorción N₂ (BET)','TPR-H₂','TEM','XPS','FTIR-piridina','ICP-OES']},
+  {id:'equipo',l:'Equipo / ID',t:'txt',ph:'Micromeritics ASAP 2020'},{id:'resultado',l:'Resultado clave',t:'txt',ph:'S_BET = 412 m²/g'}]},
+ act:{label:'Condiciones del ensayo',fields:[
+  {id:'reaccion',l:'Reacción',t:'sel',o:['CO₂ + 4H₂ → CH₄ + 2H₂O','CH₄ + CO₂ → 2CO + 2H₂','Craqueo de n-heptano','Hidrodesulfuración de tiofeno']},
+  {id:'treac',l:'T reactor (°C)',t:'num',ph:'350'},{id:'pres',l:'Presión (bar)',t:'num',ph:'10'},
+  {id:'conv',l:'Conversión (%)',t:'num',ph:'78'},{id:'sel',l:'Selectividad (%)',t:'num',ph:'95'},{id:'yield',l:'Rendimiento (%)',t:'num',ph:'74'}]}
+};
+
+/* ---------- Registros de ejemplo ---------- */
+const TT={t1:'sint',t2:'carac',t3:'act'};
+const mk=(n,date,tech,pi,sample,status,y,reag,extra,notes,comment)=>({id:'ICP-26-0'+n,date,tech,type:TT[tech],project:PROJECTS[pi],sample,status,yield:y,
+  reag:reag.map(r=>({k:r[0],amt:r[1],unit:r[2]})),extra:extra||{},notes:notes||'',comment:comment||'',photos:[],lote:'L'+n});
+const SEED=[
+ mk(412,'2026-09-08','t1',0,'Pt/Al₂O₃ 1 % p/p','ok',94,[['H2PtCl6',0.134,'g'],['Al2O3',5,'g'],['H2O',6,'mL']],{metodo:'Impregnación húmeda incipiente',tcal:500,dur:4},'Impregnación gota a gota, secado 110 °C 12 h.'),
+ mk(413,'2026-09-09','t1',1,'Pd/Zeolita Y 0,5 %','ok',91,[['PdNO3',0.06,'g'],['ZeoY',4,'g'],['H2O',5,'mL']],{metodo:'Intercambio iónico',tcal:450,dur:3}),
+ mk(414,'2026-09-11','t1',2,'Ni/SiO₂ 10 %','ok',88,[['NiNO3',2.755,'g'],['SiO2',5,'g'],['H2O',8,'mL']],{metodo:'Impregnación húmeda incipiente',tcal:500,dur:4}),
+ mk(415,'2026-09-14','t1',2,'Ni-Co/ZrO₂ 8 %','rej',71,[['NiNO3',1.9,'g'],['CoNO3',0.6,'g'],['ZrO2',4,'g'],['H2O',10,'mL']],{metodo:'Coprecipitación'},'Precipitado algo heterogéneo.','Falta la temperatura de calcinación y el pH final. Repetir el lote y registrarlos.'),
+ mk(416,'2026-09-16','t2',0,'Pt/Al₂O₃ 1 % · BET','ok',null,[['EtOH',5,'mL']],{tecnica:'Fisisorción N₂ (BET)',equipo:'Micromeritics ASAP 2020',resultado:'S_BET = 214 m²/g'}),
+ mk(417,'2026-09-17','t2',1,'Pd/Zeolita Y · DRX','ok',null,[],{tecnica:'DRX',equipo:'Bruker D8',resultado:'Estructura FAU conservada'}),
+ mk(418,'2026-09-21','t3',0,'Ensayo Pt/Al₂O₃ a 350 °C','ok',74,[['Al2O3',0.2,'g']],{reaccion:'CO₂ + 4H₂ → CH₄ + 2H₂O',treac:350,pres:10,conv:78,sel:95}),
+ mk(419,'2026-09-22','t3',2,'Ensayo Ni/SiO₂ a 750 °C','ok',81,[['SiO2',0.25,'g']],{reaccion:'CH₄ + CO₂ → 2CO + 2H₂',treac:750,pres:1,conv:85,sel:96}),
+ mk(420,'2026-09-23','t1',3,'Co-Ni/Al₂O₃ 6 %','pend',86,[['CoNO3',1.5,'g'],['NiNO3',1.4,'g'],['Al2O3',5,'g'],['H2O',7,'mL']],{metodo:'Impregnación húmeda incipiente',tcal:500,dur:4}),
+ mk(421,'2026-09-25','t1',0,'Cu-Fe/TiO₂','pend',83,[['CuNO3',1.2,'g'],['FeNO3',0.9,'g'],['TiO2',4,'g'],['H2O',6,'mL'],['HNO3',0.2,'mL']],{metodo:'Coprecipitación',tcal:400,dur:3}),
+ mk(422,'2026-09-28','t2',2,'Ni/SiO₂ · TPR-H₂','ok',null,[],{tecnica:'TPR-H₂',equipo:'AutoChem II',resultado:'Pico de reducción a 520 °C'}),
+ mk(423,'2026-09-30','t3',1,'Craqueo de n-heptano a 500 °C','ok',68,[['Hept',3,'mL'],['ZeoY',0.3,'g']],{reaccion:'Craqueo de n-heptano',treac:500,pres:1,conv:72,sel:88}),
+ mk(424,'2026-10-01','t3',3,'HDS de tiofeno a 320 °C','pend',59,[['Al2O3',0.3,'g']],{reaccion:'Hidrodesulfuración de tiofeno',treac:320,pres:30,conv:64,sel:92}),
+ mk(425,'2026-10-01','t2',3,'Co-Ni/Al₂O₃ · XPS','pend',null,[],{tecnica:'XPS',equipo:'SPECS PHOIBOS',resultado:'Co 2p y Ni 2p como óxidos'}),
+ mk(426,'2026-10-02','t1',1,'Pd/Zeolita Y 1 %','pend',90,[['PdNO3',0.12,'g'],['ZeoY',4,'g'],['H2O',5,'mL']],{metodo:'Intercambio iónico',tcal:450,dur:3}),
+ mk(427,'2026-10-02','t3',0,'Ensayo Cu-Fe/TiO₂ a 300 °C','pend',63,[['TiO2',0.25,'g']],{reaccion:'CO₂ + 4H₂ → CH₄ + 2H₂O',treac:300,pres:10,conv:66,sel:90}),
+ mk(428,'2026-10-05','t1',2,'Ni/ZrO₂ 12 %','pend',87,[['NiNO3',3.3,'g'],['ZrO2',5,'g'],['H2O',7,'mL']],{metodo:'Impregnación húmeda incipiente',tcal:550,dur:4}),
+ mk(429,'2026-10-05','t2',0,'Pt/Al₂O₃ · TEM','pend',null,[['EtOH',3,'mL']],{tecnica:'TEM',equipo:'JEOL JEM-2100',resultado:'Tamaño medio de partícula 2,1 nm'})
+];
+
+const S={role:'admin',tab:'panel',records:SEED.map(r=>({...r})),next:430,sel:null,
+ f:{st:'',tech:'',q:''},d:{from:'2026-09-01',to:'2026-10-05',proj:''},
+ form:null,page:1,size:10,chk:new Set()};
+
+/* ---------- Utilidades ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf=(v,d=2)=>v==null||isNaN(v)?'—':Number(v).toLocaleString('es-ES',{maximumFractionDigits:d,minimumFractionDigits:0});
+const fdate=iso=>new Date(iso+'T00:00:00').toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'});
+const STAT={pend:['pend','Pendiente de revisión'],ok:['ok','Aprobado'],rej:['rej','Rechazado']};
+const pill=s=>`<span class="pill ${STAT[s][0]}"><i></i>${STAT[s][1]}</span>`;
+let toastT;
+function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3400)}
+const TODAY='2026-10-05';
+
+/* ---------- Estequiometría ---------- */
+/* rows:[{k,amt,unit,pur}] · vfin: mL de disolución final (o null → suma de volúmenes) */
+function calc(rows,vfin){
+  let vsum=0,support=0,metal=0;const out=[];
+  rows.forEach(r=>{const d=RBY[r.k];if(d&&r.unit==='mL'&&r.amt>0)vsum+=+r.amt;});
+  const V=vfin>0?vfin:vsum;
+  rows.forEach(r=>{
+    const d=RBY[r.k];if(!d){out.push(null);return}
+    const a=+r.amt||0;let g=0;
+    if(r.unit==='g')g=a;else if(r.unit==='mg')g=a/1000;
+    else if(r.unit==='mL')g=a*(d.rho||1);else if(r.unit==='µL')g=a/1000*(d.rho||1);
+    const pur=(r.pur>0?r.pur:d.pur)/100;
+    const mol=d.mw?g*pur/d.mw:null;               // mol
+    const M=(mol!=null&&V>0&&d.role!=='solvente'&&d.role!=='soporte')?mol/(V/1000):null;
+    if(d.role==='soporte')support+=g;
+    if(d.metal&&mol!=null)metal+=mol*d.metal.mw;
+    out.push({g,mol,M,d});
+  });
+  const load=support>0&&metal>0?metal/(support+metal)*100:null;
+  return{rows:out,V,vsum,support,metal,load};
+}
+function toGrams(r){const d=RBY[r.k];if(!d)return 0;const a=+r.amt||0;
+  return r.unit==='g'?a:r.unit==='mg'?a/1000:r.unit==='mL'?a*(d.rho||1):a/1000*(d.rho||1)}
+
+/* ---------- Carcasa: perfil y navegación ---------- */
+ROLES.admin.tabs=['panel','dash','nuevo'];
+const TABS={panel:['Panel de aprobación','clip'],dash:['Dashboard','chart'],nuevo:['Nuevo registro','flask'],mios:['Mis registros','list']};
+const TITLES={panel:'Panel de aprobación',dash:'Dashboard y analítica',nuevo:'Nuevo registro de fórmula o ensayo',mios:'Mis registros'};
+const pendingCount=()=>S.records.filter(r=>r.status==='pend').length;
+const initials=n=>n.split(' ').filter(w=>!w.endsWith('.')).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+
+function renderShell(){
+  const tabs=ROLES[S.role].tabs;
+  const mk=(mobile)=>tabs.map(t=>{
+    const b=t==='panel'&&pendingCount()?`<span class="badge">${pendingCount()}</span>`:'';
+    return `<button type="button" data-tab="${t}" ${S.tab===t?'aria-current="page"':''}>${ico(TABS[t][1],mobile?24:20)}<span>${mobile&&t==='panel'?'Aprobación':TABS[t][0]}</span>${b}</button>`}).join('');
+  $('#nav').innerHTML=mk(false);
+  const m=$('#mnav');m.style.setProperty('--n',tabs.length);m.innerHTML=mk(true);
+  $$('[data-tab]').forEach(b=>b.onclick=()=>{S.tab=b.dataset.tab;S.sel=null;render()});
+  $('#pageTitle').textContent=TITLES[S.tab];
+  const r=ROLES[S.role];
+  $('#avatar').textContent=initials(r.who);$('#whoName').textContent=r.who;
+  $('#whoRole').textContent=S.role==='admin'?'Investigador principal':r.label.split(' · ')[1];
+}
+function initShell(){
+  const sel=$('#role');
+  sel.innerHTML=Object.entries(ROLES).map(([k,r])=>`<option value="${k}">${esc(r.label)}</option>`).join('');
+  sel.onchange=()=>{S.role=sel.value;S.tab=ROLES[S.role].tabs[0];S.sel=null;S.form=null;render();window.scrollTo(0,0)};
+}
+let charts=[];
+function render(){
+  charts.forEach(c=>c.destroy());charts=[];
+  renderShell();
+  const v=$('#view');
+  if(S.tab==='nuevo')viewForm(v);
+  else if(S.tab==='mios')viewMine(v);
+  else if(S.tab==='panel')viewPanel(v);
+  else viewDash(v);
+}
+const rname=r=>RBY[r.k]?RBY[r.k].n:(r.name||r.k);
+const norm=s=>String(s).toLowerCase().replace(/[₀-₉]/g,c=>'0123456789'[c.charCodeAt(0)-8320]).replace(/[^a-z0-9áéíóúñ]/g,'');
+
+/* ---------- A) Nuevo registro ---------- */
+const PHRASES={
+ sint:'Se disuelve el precursor en agua desionizada y se añade gota a gota sobre el soporte bajo agitación a 400 rpm. Reposo 4 horas a temperatura ambiente y secado a 110 grados.',
+ carac:'Muestra desgasificada 3 horas a 250 grados antes de la medida. Se repite el análisis por duplicado para confirmar la reproducibilidad.',
+ act:'Lecho de 200 miligramos diluido con carburo de silicio. Reducción in situ con hidrógeno una hora antes de iniciar la reacción. Estado estacionario tras 40 minutos.'
+};
+function newForm(){
+  const type=ROLES[S.role].type||'sint';
+  return{type,project:PROJECTS[0],sample:'',rows:[blankRow()],vfin:'',extra:{},notes:'',photos:[],listening:false};
+}
+const blankRow=()=>({k:'',q:'',amt:'',unit:'g',pur:''});
+function initExtra(f){f.extra={};SUBST[f.type].fields.forEach(x=>{if(x.t==='sel')f.extra[x.id]=x.o[0]})}
+
+function viewForm(v){
+  if(!S.form){S.form=newForm();initExtra(S.form)}
+  const f=S.form,locked=ROLES[S.role].type;
+  v.innerHTML=`
+  <div class="page-h"><div><p>Los datos entran como <b>Pendiente de revisión</b> hasta que el investigador principal los valide.</p></div>
+    <span class="pill pend"><i></i>Estado inicial: Pendiente de revisión</span></div>
+
+  <section class="card"><h2><span class="step">1</span>Identificación</h2>
+    <div class="grid">
+      <div class="field"><span class="lbl">Tipo de registro</span>
+        ${locked?`<div class="in" style="display:flex;align-items:center;font-weight:600">${TYPES[f.type]}</div>`:
+        `<div class="seg" id="typeSeg">${Object.entries(TYPES).map(([k,l])=>`<button type="button" data-t="${k}" aria-pressed="${f.type===k}">${l}</button>`).join('')}</div>`}
+      </div>
+      <div class="field"><label for="proj">Proyecto</label><select class="in" id="proj">${PROJECTS.map(p=>`<option ${p===f.project?'selected':''}>${esc(p)}</option>`).join('')}</select></div>
+      <div class="field"><label for="sample">Muestra o lote</label><input class="in" id="sample" placeholder="Ej.: Pt/Al₂O₃ 1 % p/p" value="${esc(f.sample)}"></div>
+      <div class="field"><label>Código asignado</label><div class="in mono" style="display:flex;align-items:center">ICP-26-0${S.next}</div></div>
+    </div></section>
+
+  <section class="card"><h2><span class="step">2</span>Reactivos y cantidades</h2>
+    <div id="rows"></div>
+    <div class="row-actions" style="margin-top:14px">
+      <button class="btn ghost" type="button" id="addRow">${ico('plus')} Añadir reactivo</button>
+      <div class="field" style="flex:1 1 230px;max-width:300px"><label for="vfin">Volumen final de disolución (mL)</label>
+        <input class="in mono" id="vfin" inputmode="decimal" placeholder="Auto: suma de volúmenes" value="${esc(f.vfin)}"></div>
+    </div>
+    <div id="res" class="result" style="margin-top:16px"></div>
+    <p class="hint" style="margin-top:10px">Molaridad = mol de soluto / volumen final. Carga metálica nominal = masa de metal / (masa de soporte + masa de metal). Si el reactivo es una disolución comercial, ajusta la pureza.</p>
+  </section>
+
+  <section class="card"><h2><span class="step">3</span>${SUBST[f.type].label}</h2>
+    <div class="grid" id="extra"></div></section>
+
+  <section class="card"><h2><span class="step">4</span>Observaciones y adjuntos</h2>
+    <div class="field"><label for="notes">Observaciones</label><textarea class="in" id="notes" placeholder="Condiciones, incidencias, aspecto de la muestra…">${esc(f.notes)}</textarea></div>
+    <div class="row-actions" style="margin-top:12px">
+      <button class="btn ghost" type="button" id="dict">${ico('mic')} <span>Dictado por voz</span></button>
+      <label class="btn ghost" for="photo" style="cursor:pointer">${ico('cam')} Foto del cuaderno o muestra</label>
+      <input id="photo" type="file" accept="image/*" multiple hidden>
+    </div>
+    <p class="hint" style="margin-top:8px">El dictado es una simulación en este prototipo: añade un texto de ejemplo.</p>
+    <div class="thumbs" id="thumbs"></div></section>
+
+  <div class="submit-bar">
+    <button class="btn ok" type="button" id="send">${ico('send')} Enviar a revisión</button>
+    <button class="btn ghost" type="button" id="clear">Limpiar formulario</button>
+  </div>`;
+  bindForm();renderRows();renderExtra();renderThumbs();updateCalc();
+}
+
+function bindForm(){
+  const f=S.form;
+  $$('#typeSeg button').forEach(b=>b.onclick=()=>{f.type=b.dataset.t;initExtra(f);viewForm($('#view'))});
+  $('#proj').onchange=e=>f.project=e.target.value;
+  $('#sample').oninput=e=>f.sample=e.target.value;
+  $('#vfin').oninput=e=>{f.vfin=e.target.value.replace(',','.');updateCalc()};
+  $('#notes').oninput=e=>f.notes=e.target.value;
+  $('#addRow').onclick=()=>{f.rows.push(blankRow());renderRows()};
+  $('#clear').onclick=()=>{S.form=null;viewForm($('#view'));toast('Formulario limpio')};
+  $('#send').onclick=submitForm;
+  $('#dict').onclick=()=>{
+    const b=$('#dict');if(f.listening)return;f.listening=true;
+    b.classList.add('listening');b.querySelector('span').textContent='Escuchando…';
+    setTimeout(()=>{f.listening=false;b.classList.remove('listening');b.querySelector('span').textContent='Dictado por voz';
+      const ta=$('#notes');if(!ta)return;f.notes=(f.notes?f.notes+'\n':'')+PHRASES[f.type];ta.value=f.notes;toast('Dictado añadido a las observaciones')},2200);
+  };
+  $('#photo').onchange=e=>{
+    [...e.target.files].slice(0,4-f.photos.length).forEach(file=>{
+      const fr=new FileReader();fr.onload=()=>{f.photos.push(fr.result);renderThumbs()};fr.readAsDataURL(file)});
+    e.target.value='';
+  };
+}
+function renderThumbs(){
+  const f=S.form,t=$('#thumbs');if(!t)return;
+  t.innerHTML=f.photos.map((p,i)=>`<img src="${p}" alt="Adjunto ${i+1}">`).join('')+(f.photos.length?`<span class="hint" style="align-self:center">${f.photos.length} adjunto(s)</span>`:'');
+}
+function renderExtra(){
+  const f=S.form,box=$('#extra');
+  box.innerHTML=SUBST[f.type].fields.map(x=>{
+    const val=f.extra[x.id]??'';
+    const inp=x.t==='sel'?`<select class="in" id="x_${x.id}">${x.o.map(o=>`<option ${o===val?'selected':''}>${esc(o)}</option>`).join('')}</select>`
+      :`<input class="in ${x.t==='num'?'mono':''}" id="x_${x.id}" ${x.t==='num'?'inputmode="decimal"':''} placeholder="${esc(x.ph||'')}" value="${esc(val)}">`;
+    return `<div class="field"><label for="x_${x.id}">${x.l}</label>${inp}</div>`}).join('');
+  SUBST[f.type].fields.forEach(x=>{const el=$('#x_'+x.id);el.oninput=el.onchange=()=>f.extra[x.id]=x.t==='num'?el.value.replace(',','.'):el.value});
+}
+
+function renderRows(){
+  const f=S.form,box=$('#rows');
+  box.innerHTML=f.rows.map((r,i)=>`
+  <div class="reag" data-i="${i}">
+    <div class="reag-grid">
+      <div class="field f-name" style="position:relative"><label for="nm${i}">Reactivo o solvente</label>
+        <input class="in nm" id="nm${i}" autocomplete="off" placeholder="H₂PtCl₆, Al₂O₃, Zeolita Y, Etanol…" value="${esc(r.q)}">
+        <div class="sugg" hidden></div></div>
+      <div class="field"><label for="am${i}">Cantidad</label><input class="in mono amt" id="am${i}" inputmode="decimal" placeholder="0,00" value="${esc(r.amt)}"></div>
+      <div class="field"><label for="un${i}">Unidad</label><select class="in unit" id="un${i}">${['g','mg','mL','µL'].map(u=>`<option ${u===r.unit?'selected':''}>${u}</option>`).join('')}</select></div>
+      <div class="field"><label for="pu${i}">Pureza (%)</label><input class="in mono pur" id="pu${i}" inputmode="decimal" placeholder="${RBY[r.k]?RBY[r.k].pur:'100'}" value="${esc(r.pur)}"></div>
+    </div>
+    <div class="calc" id="calc${i}"></div>
+  </div>`).join('');
+  $$('.reag',box).forEach(el=>{
+    const i=+el.dataset.i,r=f.rows[i],nm=$('.nm',el),sg=$('.sugg',el);
+    const pick=d=>{r.k=d.k;r.q=d.n;nm.value=d.n;r.unit=d.rho?'mL':'g';$('.unit',el).value=r.unit;$('.pur',el).placeholder=d.pur;sg.hidden=true;updateCalc()};
+    const show=()=>{
+      const q=norm(nm.value);
+      const hits=REAG.filter(d=>!q||norm(d.n+d.k+d.alt).includes(q)).slice(0,6);
+      if(!hits.length){sg.hidden=true;return}
+      sg.innerHTML=hits.map(d=>`<button type="button" data-k="${d.k}"><span>${d.n}</span><small>${d.alt}${d.mw?' · '+nf(d.mw,2)+' g/mol':''}</small></button>`).join('');
+      sg.hidden=false;
+      $$('button',sg).forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>pick(RBY[b.dataset.k])});
+    };
+    nm.onfocus=show;
+    nm.oninput=()=>{r.q=nm.value;const ex=REAG.find(d=>norm(d.n)===norm(nm.value)||norm(d.k)===norm(nm.value));r.k=ex?ex.k:'';show();updateCalc()};
+    nm.onblur=()=>setTimeout(()=>sg.hidden=true,120);
+    $('.amt',el).oninput=e=>{r.amt=e.target.value.replace(',','.');updateCalc()};
+    $('.unit',el).onchange=e=>{r.unit=e.target.value;updateCalc()};
+    $('.pur',el).oninput=e=>{r.pur=e.target.value.replace(',','.');updateCalc()};
+  });
+}
+function updateCalc(){
+  const f=S.form;if(!f||!$('#res'))return;
+  const c=calc(f.rows,+f.vfin);
+  f.rows.forEach((r,i)=>{
+    const el=$('#calc'+i);if(!el)return;
+    const o=c.rows[i];let h='';
+    if(!r.q)h='<span>Elige un reactivo para calcular masa, moles y molaridad.</span>';
+    else if(!o)h='<span>Reactivo fuera del catálogo: sin cálculo automático.</span>';
+    else{
+      h=`<span>Masa <b>${nf(o.g,4)} g</b></span>`;
+      if(o.mol!=null)h+=`<span>n <b>${nf(o.mol*1000,3)} mmol</b></span>`;else h+='<span>Sin masa molar definida: solo masa.</span>';
+      if(o.M!=null)h+=`<span>Molaridad <b>${nf(o.M,4)} mol/L</b></span>`;
+      if(o.d.metal&&o.mol!=null)h+=`<span>${o.d.metal.s} aportado <b>${nf(o.mol*o.d.metal.mw*1000,2)} mg</b></span>`;
+    }
+    h+=f.rows.length>1?`<button type="button" class="rm" aria-label="Quitar reactivo" data-rm="${i}">${ico('x',20)}</button>`:'';
+    el.innerHTML=h;
+    const b=$('[data-rm]',el);if(b)b.onclick=()=>{f.rows.splice(i,1);renderRows();updateCalc()};
+  });
+  const total=c.rows.reduce((s,o)=>s+(o?o.g:0),0);
+  const items=[['Volumen de disolución',c.V>0?nf(c.V,2)+' mL':'—'],['Masa total pesada',nf(total,3)+' g']];
+  if(c.load!=null)items.push(['Carga metálica nominal',nf(c.load,2)+' % p/p']);
+  items.push(['Reactivos',String(f.rows.filter(r=>r.q).length)]);
+  $('#res').innerHTML=items.map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('');
+}
+function submitForm(){
+  const f=S.form;
+  const rows=f.rows.filter(r=>r.q&&+r.amt>0).map(r=>({k:r.k||'x:'+r.q,name:r.q,amt:+r.amt,unit:r.unit}));
+  if(!f.sample.trim()){toast('Falta el nombre de la muestra o lote');$('#sample').focus();return}
+  if(f.type==='sint'&&!rows.length){toast('Añade al menos un reactivo con su cantidad');return}
+  const ex={};Object.entries(f.extra).forEach(([k,v])=>{if(v!=='')ex[k]=/^(tcal|dur|treac|pres|conv|sel|yield)$/.test(k)?+v:v});
+  const id='ICP-26-0'+S.next;
+  S.records.unshift({id,lote:'L'+S.next,date:TODAY,tech:S.role,type:f.type,project:f.project,sample:f.sample.trim(),status:'pend',
+    yield:ex.yield??null,reag:rows,extra:ex,notes:f.notes,comment:'',photos:f.photos.slice()});
+  S.next++;S.form=null;S.tab=S.role==='admin'?'panel':'mios';S.sel=null;render();window.scrollTo(0,0);
+  toast(id+' enviado: pendiente de revisión');
+}
+
+/* ---------- Mis registros ---------- */
+function viewMine(v){
+  const mine=S.records.filter(r=>r.tech===S.role);
+  v.innerHTML=`<div class="page-h"><div><p>Estado de lo que has enviado. Los rechazados incluyen el comentario del investigador principal.</p></div>
+    <button class="btn" type="button" id="goNew">${ico('plus')} Nuevo registro</button></div>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr))">${mine.map(r=>`
+    <article class="card" style="margin:0">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px"><span class="mono" style="font-weight:600;color:var(--link)">${r.id}</span>${pill(r.status)}</div>
+      <h3 style="font-size:16px;font-weight:600">${r.sample}</h3>
+      <p class="hint" style="margin:4px 0 10px">${TYPES[r.type]} · ${fdate(r.date)} · ${esc(PCODE(r.project))}</p>
+      ${r.yield!=null?`<p class="hint">Rendimiento: <b class="mono" style="color:var(--ink)">${nf(r.yield,1)} %</b></p>`:''}
+      ${r.status==='rej'?`<div class="note bad" style="margin-top:10px"><b>Rechazado:</b> ${esc(r.comment)}</div><button class="btn sm" type="button" data-reuse="${r.id}" style="margin-top:4px">Corregir y reenviar</button>`:''}
+    </article>`).join('')||'<div class="card empty">Aún no has enviado registros.</div>'}</div>`;
+  $('#goNew').onclick=()=>{S.tab='nuevo';render()};
+  $$('[data-reuse]').forEach(b=>b.onclick=()=>{
+    const r=S.records.find(x=>x.id===b.dataset.reuse);
+    S.form={type:r.type,project:r.project,sample:r.sample,rows:r.reag.map(x=>({k:RBY[x.k]?x.k:'',q:rname(x),amt:String(x.amt),unit:x.unit,pur:''})),vfin:'',extra:{...r.extra},notes:r.notes,photos:[],listening:false};
+    if(!S.form.rows.length)S.form.rows=[blankRow()];
+    S.tab='nuevo';render();toast('Datos cargados. Corrige y vuelve a enviar.');
+  });
+}
+
+/* ---------- B) Panel de aprobación (Admin) ---------- */
+function filtered(){
+  const {st,tech,q}=S.f;
+  return S.records.filter(r=>(!st||r.status===st)&&(!tech||r.tech===tech)&&(!q||norm(r.id+r.sample+r.project).includes(norm(q))));
+}
+function viewPanel(v){
+  const list=filtered(),size=S.size,pages=Math.max(1,Math.ceil(list.length/size));
+  if(S.page>pages)S.page=pages;
+  const a=(S.page-1)*size,vis=list.slice(a,a+size),nSel=S.chk.size;
+  const allChk=vis.length>0&&vis.every(r=>S.chk.has(r.id));
+  v.innerHTML=`<div class="page-h"><div><p>Fórmulas y ensayos enviados por los tres técnicos. ${pendingCount()} pendientes de revisión.</p></div>
+    <div class="row-actions"><button class="btn ok" type="button" id="bulk" ${nSel?'':'disabled'}>${ico('check')} Aprobar seleccionados${nSel?' ('+nSel+')':''}</button>
+    <button class="btn ghost" type="button" id="exp">${ico('sheet')} Exportar a Excel${nSel?' ('+nSel+')':''}</button></div></div>
+  <div class="filters">
+    <select class="in" id="fSt" aria-label="Filtrar por estado"><option value="">Todos los estados</option><option value="pend">Pendiente de revisión</option><option value="ok">Aprobado</option><option value="rej">Rechazado</option></select>
+    <select class="in" id="fTech" aria-label="Filtrar por técnico"><option value="">Todos los técnicos</option><option value="t1">Técnico 1 · Síntesis</option><option value="t2">Técnico 2 · Caracterización</option><option value="t3">Técnico 3 · Actividad</option><option value="admin">Admin</option></select>
+    <input class="in" id="fQ" type="search" placeholder="Buscar lote, muestra o proyecto" aria-label="Buscar">
+  </div>
+  <div class="tbl-wrap"><table><thead><tr><th style="width:52px"><input class="chk" type="checkbox" id="chkAll" aria-label="Seleccionar los registros de esta página" ${allChk?'checked':''}></th><th>Código</th><th>Fecha</th><th>Técnico</th><th>Tipo</th><th>Proyecto</th><th>Muestra</th><th>Rend. %</th><th>Estado</th><th></th></tr></thead>
+  <tbody>${vis.map(r=>`<tr class="${S.sel===r.id?'sel':''}"><td><input class="chk" type="checkbox" data-chk="${r.id}" aria-label="Seleccionar ${r.id}" ${S.chk.has(r.id)?'checked':''}></td><td><span class="id">${r.id}</span></td><td class="nw">${fdate(r.date)}</td><td class="nw">${TECH_SHORT[r.tech]}</td><td>${TYPES[r.type]}</td><td class="nw">${esc(PCODE(r.project))}</td><td>${r.sample}</td>
+    <td class="mono">${nf(r.yield,1)}</td><td>${pill(r.status)}</td>
+    <td><button class="btn sm ghost" type="button" data-open="${r.id}">${ico('eye',18)} Revisar</button></td></tr>`).join('')||'<tr><td colspan="10" class="empty">Ningún registro coincide con los filtros.</td></tr>'}</tbody></table></div>
+  <div class="pager">
+    <div class="pg-nav"><button class="pg" type="button" id="pgPrev" aria-label="Página anterior" ${S.page<=1?'disabled':''}>‹</button>${Array.from({length:pages},(_,i)=>`<button class="pg" type="button" data-pg="${i+1}" ${i+1===S.page?'aria-current="true"':''}>${i+1}</button>`).join('')}<button class="pg" type="button" id="pgNext" aria-label="Página siguiente" ${S.page>=pages?'disabled':''}>›</button></div>
+    <div class="pg-info"><label class="sr" for="pgSize">Registros por página</label><select class="in" id="pgSize" style="width:92px;height:44px">${[10,20].map(n=>`<option ${n===size?'selected':''}>${n}</option>`).join('')}</select><span>${list.length?`Mostrando ${a+1} a ${a+vis.length} de ${list.length} registros`:'Sin registros'}</span></div>
+  </div>
+  <div id="detail"></div>`;
+  $('#fSt').value=S.f.st;$('#fTech').value=S.f.tech;$('#fQ').value=S.f.q;
+  const redo=()=>viewPanel(v);
+  $('#fSt').onchange=e=>{S.f.st=e.target.value;S.sel=null;S.page=1;redo()};
+  $('#fTech').onchange=e=>{S.f.tech=e.target.value;S.sel=null;S.page=1;redo()};
+  $('#fQ').oninput=e=>{S.f.q=e.target.value;clearTimeout(viewPanel.t);viewPanel.t=setTimeout(()=>{S.sel=null;S.page=1;redo();const q=$('#fQ');q.focus();q.setSelectionRange(q.value.length,q.value.length)},250)};
+  $$('[data-open]').forEach(b=>b.onclick=()=>{S.sel=b.dataset.open;redo();$('#detail').scrollIntoView({behavior:'smooth',block:'start'})});
+  $$('[data-chk]').forEach(c=>c.onchange=()=>{c.checked?S.chk.add(c.dataset.chk):S.chk.delete(c.dataset.chk);redo()});
+  $('#chkAll').onchange=e=>{vis.forEach(r=>e.target.checked?S.chk.add(r.id):S.chk.delete(r.id));redo()};
+  $$('[data-pg]').forEach(b=>b.onclick=()=>{S.page=+b.dataset.pg;redo()});
+  $('#pgPrev').onclick=()=>{S.page--;redo()};$('#pgNext').onclick=()=>{S.page++;redo()};
+  $('#pgSize').onchange=e=>{S.size=+e.target.value;S.page=1;redo()};
+  $('#bulk').onclick=()=>{const n=S.chk.size;S.records.forEach(r=>{if(S.chk.has(r.id)){r.status='ok';r.comment=''}});S.chk.clear();toast(n+' registro(s) aprobado(s)');redo();renderShell()};
+  $('#exp').onclick=()=>exportXlsx(nSel?S.records.filter(r=>S.chk.has(r.id)):list);
+  if(S.sel)detail(S.records.find(r=>r.id===S.sel));
+}
+function detail(r){
+  if(!r)return;
+  const c=calc(r.reag,0);
+  const ex=SUBST[r.type].fields.filter(x=>r.extra[x.id]!=null&&r.extra[x.id]!=='').map(x=>`<div><span>${x.l}</span><b>${esc(r.extra[x.id])}</b></div>`).join('');
+  $('#detail').innerHTML=`<section class="card detail">
+    <h2 style="justify-content:space-between;flex-wrap:wrap"><span>${r.id} · ${r.sample}</span>${pill(r.status)}</h2>
+    <div class="kv"><div><span>Técnico</span><b>${TECH_SHORT[r.tech]}</b></div><div><span>Fecha</span><b>${fdate(r.date)}</b></div><div><span>Tipo</span><b>${TYPES[r.type]}</b></div><div><span>Proyecto</span><b>${esc(r.project)}</b></div>${ex}</div>
+    ${r.reag.length?`<div class="tbl-wrap" style="margin-bottom:14px"><table style="min-width:520px"><thead><tr><th>Reactivo</th><th>Cantidad</th><th>Masa (g)</th><th>n (mmol)</th></tr></thead><tbody>${r.reag.map((x,i)=>{const o=c.rows[i];return `<tr><td>${rname(x)}</td><td class="mono">${nf(x.amt,3)} ${x.unit}</td><td class="mono">${o?nf(o.g,4):'—'}</td><td class="mono">${o&&o.mol!=null?nf(o.mol*1000,3):'—'}</td></tr>`}).join('')}</tbody></table></div>
+    ${c.load!=null?`<p class="hint" style="margin-bottom:12px">Carga metálica nominal: <b class="mono" style="color:var(--ink)">${nf(c.load,2)} % p/p</b></p>`:''}`:''}
+    ${r.notes?`<div class="note">${esc(r.notes)}</div>`:''}
+    ${r.comment?`<div class="note bad"><b>Comentario del revisor:</b> ${esc(r.comment)}</div>`:''}
+    ${r.photos.length?`<div class="thumbs" style="margin-bottom:12px">${r.photos.map(p=>`<img src="${p}" alt="Adjunto">`).join('')}</div>`:''}
+    <div id="rejBox" hidden><div class="field"><label for="rejTxt">Comentario para el técnico (obligatorio)</label><textarea class="in" id="rejTxt" placeholder="Qué falta o qué hay que repetir"></textarea></div></div>
+    <div class="row-actions" style="margin-top:12px">
+      <button class="btn ok" type="button" id="bOk" ${r.status==='ok'?'disabled':''}>${ico('check')} Aprobar</button>
+      <button class="btn bad" type="button" id="bRej" ${r.status==='rej'?'disabled':''}>${ico('msg')} Rechazar con comentarios</button>
+      <button class="btn ghost" type="button" id="bClose">Cerrar</button>
+    </div></section>`;
+  let asking=false;
+  $('#bOk').onclick=()=>{r.status='ok';r.comment='';toast(r.id+' aprobado');S.sel=null;viewPanel($('#view'));renderShell()};
+  $('#bRej').onclick=()=>{
+    if(!asking){asking=true;$('#rejBox').hidden=false;$('#rejTxt').focus();$('#bRej').innerHTML=ico('send')+' Confirmar rechazo';return}
+    const t=$('#rejTxt').value.trim();if(!t){toast('Escribe un comentario para el técnico');$('#rejTxt').focus();return}
+    r.status='rej';r.comment=t;toast(r.id+' rechazado con comentarios');S.sel=null;viewPanel($('#view'));renderShell();
+  };
+  $('#bClose').onclick=()=>{S.sel=null;viewPanel($('#view'))};
+}
+
+/* Exportación a Excel (.xlsx) con SheetJS */
+function exportXlsx(list){
+  if(!list.length){toast('No hay registros que exportar');return}
+  if(!window.XLSX){toast('No se pudo cargar el exportador de Excel. Revisa la conexión.');return}
+  const head=['Código','Lote','Fecha','Técnico','Tipo','Proyecto','Muestra','Rendimiento (%)','Estado','Reactivos','Comentario del revisor'];
+  const rows=list.map(r=>[r.id,r.lote,r.date,TECH_SHORT[r.tech],TYPES[r.type],r.project,r.sample,r.yield,STAT[r.status][1],
+    r.reag.map(x=>rname(x)+' '+x.amt+' '+x.unit).join('; '),r.comment]);
+  const ws=XLSX.utils.aoa_to_sheet([head,...rows]);
+  ws['!cols']=[12,9,11,12,22,34,30,14,22,50,40].map(w=>({wch:w}));
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Registros');
+  XLSX.writeFile(wb,'LIMS-ICP-UAM-registros-'+TODAY+'.xlsx');
+  toast('Excel descargado: '+list.length+' registro(s)');
+}
+
+/* ---------- C) Dashboard y analítica ---------- */
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function viewDash(v){
+  const {from,to,proj}=S.d;
+  const rs=S.records.filter(r=>r.date>=from&&r.date<=to&&(!proj||r.project===proj));
+  const ys=rs.filter(r=>r.yield!=null);
+  const mean=ys.length?ys.reduce((s,r)=>s+r.yield,0)/ys.length:null;
+  const okN=rs.filter(r=>r.status==='ok').length;
+  v.innerHTML=`<div class="page-h"><div><p>Datos de los registros enviados por los técnicos en el periodo seleccionado.</p></div></div>
+  <div class="filters">
+    <div class="field" style="flex:1 1 160px;max-width:210px"><label for="dFrom">Desde</label><input class="in mono" type="date" id="dFrom" value="${from}"></div>
+    <div class="field" style="flex:1 1 160px;max-width:210px"><label for="dTo">Hasta</label><input class="in mono" type="date" id="dTo" value="${to}"></div>
+    <div class="field" style="flex:1 1 240px;max-width:340px"><label for="dProj">Proyecto</label><select class="in" id="dProj"><option value="">Todos los proyectos</option>${PROJECTS.map(p=>`<option ${p===proj?'selected':''}>${esc(p)}</option>`).join('')}</select></div>
+  </div>
+  <div class="kpis">
+    <div class="kpi"><span>Registros</span><b>${rs.length}</b></div>
+    <div class="kpi"><span>Aprobados</span><b>${okN}</b><small>${rs.length?nf(okN/rs.length*100,0)+' %':''}</small></div>
+    <div class="kpi"><span>Pendientes</span><b>${rs.filter(r=>r.status==='pend').length}</b></div>
+    <div class="kpi"><span>Rendimiento medio</span><b>${mean==null?'—':nf(mean,1)}</b><small>${mean==null?'':'%'}</small></div>
+  </div>
+  <div class="charts">
+    <section class="card"><h2>Rendimiento de reacciones por lote</h2><div class="cbox tall"><canvas id="c1" role="img" aria-label="Rendimiento por lote"></canvas></div><p class="hint" style="margin-top:8px">Azul: aprobado · dorado: pendiente · rojo: rechazado.</p></section>
+    <section class="card"><h2>Uso de reactivos en el periodo</h2><div class="cbox tall"><canvas id="c2" role="img" aria-label="Uso de reactivos en gramos"></canvas></div><p class="hint" style="margin-top:8px">Masa en gramos; los líquidos se convierten con su densidad. Se excluye el agua.</p></section>
+    <section class="card" style="grid-column:1/-1"><h2>Número de ensayos por técnico</h2><div class="cbox"><canvas id="c3" role="img" aria-label="Ensayos por técnico y estado"></canvas></div></section>
+  </div>`;
+  const redo=()=>viewDash(v);
+  $('#dFrom').onchange=e=>{S.d.from=e.target.value||from;redo()};
+  $('#dTo').onchange=e=>{S.d.to=e.target.value||to;redo()};
+  $('#dProj').onchange=e=>{S.d.proj=e.target.value;redo()};
+  charts.forEach(c=>c.destroy());charts=[];
+  if(!window.Chart)return;
+  const ink=cssv('--muted'),grid=cssv('--line'),blue=cssv('--primary'),gold=cssv('--gold'),ok=cssv('--ok'),bad=cssv('--bad');
+  Chart.defaults.font.family=cssv('--font');Chart.defaults.color=ink;Chart.defaults.borderColor=grid;
+  const common={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:12}}}};
+  /* 1 · rendimiento por lote */
+  const ysort=[...ys].sort((a,b)=>a.date.localeCompare(b.date));
+  charts.push(new Chart($('#c1'),{data:{labels:ysort.map(r=>r.lote),datasets:[
+    {type:'bar',label:'Rendimiento (%)',data:ysort.map(r=>r.yield),backgroundColor:ysort.map(r=>r.status==='ok'?blue:r.status==='rej'?bad:silver()),borderRadius:4},
+    {type:'line',label:'Media',data:ysort.map(()=>mean),borderColor:gold,borderDash:[6,4],pointRadius:0,borderWidth:2}]},
+   options:{...common,scales:{y:{min:0,max:100,title:{display:true,text:'Rendimiento (%)'}},x:{ticks:{maxRotation:60,autoSkip:true}}},
+    plugins:{...common.plugins,tooltip:{callbacks:{afterLabel:c=>ysort[c.dataIndex]?String(ysort[c.dataIndex].sample).replace(/<[^>]+>/g,'')+' · '+STAT[ysort[c.dataIndex].status][1]:''}}}}}));
+  /* 2 · uso de reactivos */
+  const use={};rs.forEach(r=>r.reag.forEach(x=>{if(x.k==='H2O')return;const n=rname(x).replace(/<[^>]+>/g,'');use[n]=(use[n]||0)+toGrams(x)}));
+  const top=Object.entries(use).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  charts.push(new Chart($('#c2'),{type:'bar',data:{labels:top.map(t=>t[0]),datasets:[{label:'Masa (g)',data:top.map(t=>+t[1].toFixed(3)),backgroundColor:blue,borderRadius:4}]},
+   options:{...common,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'g'}}}}}));
+  /* 3 · ensayos por técnico */
+  const techs=['t1','t2','t3','admin'].filter(t=>rs.some(r=>r.tech===t));
+  const ds=[['ok','Aprobado',ok],['pend','Pendiente de revisión',gold],['rej','Rechazado',bad]].map(([s,l,c])=>({label:l,backgroundColor:c,borderRadius:3,data:techs.map(t=>rs.filter(r=>r.tech===t&&r.status===s).length)}));
+  charts.push(new Chart($('#c3'),{type:'bar',data:{labels:techs.map(t=>t==='t1'?'Técnico 1 · Síntesis':t==='t2'?'Técnico 2 · Caracterización':t==='t3'?'Técnico 3 · Actividad':'Admin'),datasets:ds},
+   options:{...common,scales:{x:{stacked:true},y:{stacked:true,ticks:{precision:0},title:{display:true,text:'Ensayos'}}}}}));
+}
+const silver=()=>cssv('--gold');
+
+/* ---------- Arranque ---------- */
+initShell();render();
+
+</script>
+</body>
+</html>

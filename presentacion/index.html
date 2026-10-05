@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230B3C5D'/%3E%3Cpath d='M10 4v6l-4 8a1.5 1.5 0 0 0 1.3 2h9.4a1.5 1.5 0 0 0 1.3-2l-4-8V4M9 4h6' fill='none' stroke='%23fff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#0B3C5D">
+<title>Presentación LIMS ICP-UAM</title>
+<meta name="description" content="Presentación del proyecto de modernización LIMS para la dirección del ICP-UAM.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+/* Concepto: diapositivas a pantalla completa, composición alineada a la izquierda, fondo marino con trama hexagonal (anillo aromático) y tarjetas de cristal; el dorado marca solo lo esencial. */
+:root{
+  color-scheme:dark;
+  --bg:#07151F; --navy:#0B3C5D; --slate:#12293B;
+  --text:#EAF1F6; --muted:#9FB4C5; --line:rgba(255,255,255,.14); --glass:rgba(255,255,255,.07);
+  --gold:#E0B94F; --green:#2ECC71; --silver:#B8C0C8; --danger:#FF8E85;
+  --font:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font:16px/1.5 var(--font);margin:0;padding:0}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{text-wrap:balance}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.ic{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.bg{position:fixed;inset:0;z-index:0;background:
+  radial-gradient(1100px 650px at 88% -8%,rgba(28,111,163,.55),transparent 62%),
+  radial-gradient(900px 600px at -8% 112%,rgba(224,185,79,.13),transparent 58%),
+  linear-gradient(160deg,#08202F 0%,#0B3C5D 52%,#0A2A40 100%)}
+.bg::after{content:"";position:absolute;inset:0;opacity:.9;background-image:url("data:image/svg+xml,%3Csvg width='28' height='49' viewBox='0 0 28 49' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='.05' fill-rule='nonzero'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.98-7.5V0h-2v6.35L0 12.69v2.3zm0 18.5L12.98 41v8h-2v-6.85L0 35.81v-2.3zM15 0v7.5L27.99 15H28v-2.31h-.01L17 6.35V0h-2zm0 49v-8l12.99-7.5H28v2.31h-.01L17 42.15V49h-2z'/%3E%3C/g%3E%3C/svg%3E");mask-image:linear-gradient(90deg,transparent 0%,#000 70%);-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 70%)}
+
+/* Diapositivas */
+.slide{position:fixed;inset:0;z-index:1;overflow-y:auto;padding:clamp(20px,4.5vh,56px) clamp(16px,5vw,88px) 104px;opacity:0;visibility:hidden;transform:translateX(24px);transition:opacity .45s ease,transform .45s ease,visibility 0s .45s}
+.slide.on{opacity:1;visibility:visible;transform:none;transition:opacity .45s ease,transform .45s ease}
+.slide.before{transform:translateX(-24px)}
+.wrap{max-width:1240px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;justify-content:center;gap:clamp(18px,3.2vh,36px)}
+.eyebrow{font:600 13px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+.h2{font-size:clamp(1.7rem,3.6vw,3rem);line-height:1.1;font-weight:700;letter-spacing:-.02em;max-width:24ch}
+.lead{font-size:clamp(1rem,1.5vw,1.25rem);color:var(--muted);max-width:60ch}
+.glass{background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-radius:20px}
+.chip{display:inline-flex;align-items:center;gap:8px;border-radius:99px;padding:5px 12px;font:600 12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);color:var(--muted)}
+.chip.gold{color:var(--gold);border-color:rgba(224,185,79,.45)}
+.chip.green{color:var(--green);border-color:rgba(46,204,113,.45)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.icbox{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:26px;background:rgba(224,185,79,.12);color:var(--gold);border:1px solid rgba(224,185,79,.3)}
+.cols{display:grid;gap:18px}
+@media (min-width:900px){.cols.c3{grid-template-columns:repeat(3,minmax(0,1fr))}.cols.c4{grid-template-columns:repeat(4,minmax(0,1fr))}.cols.c2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:600px) and (max-width:899px){.cols.c4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Controles */
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px clamp(16px,3vw,32px) calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(0deg,rgba(6,18,29,.88),rgba(6,18,29,0))}
+.count{font:500 15px/1 var(--mono);color:var(--muted);min-width:84px}
+.count b{color:var(--text);font-weight:600}
+.nav-b{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:0 18px;border-radius:99px;border:1px solid var(--line);background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--text);cursor:pointer;font:600 15px var(--font)}
+.nav-b:hover:not(:disabled){background:rgba(255,255,255,.18)}
+.nav-b:disabled{opacity:.35;cursor:default}
+.nav-b.next{background:var(--gold);border-color:var(--gold);color:#13202B}
+.nav-b.next:hover:not(:disabled){background:#EBC966}
+.nav-b .ic{font-size:20px}
+.progress{position:fixed;left:0;bottom:0;height:4px;width:100%;z-index:30;background:rgba(255,255,255,.1)}
+.progress i{display:block;height:100%;width:12.5%;background:linear-gradient(90deg,var(--gold),#F3DC96);transition:width .45s ease}
+.hint{position:fixed;right:clamp(16px,3vw,32px);top:14px;z-index:20;font:12px var(--mono);color:var(--muted);opacity:.8}
+@media (max-width:640px){.nav-b span{display:none}.nav-b{width:52px;padding:0;justify-content:center}.hint{display:none}}
+@media (prefers-reduced-motion:reduce){.slide,.slide.on,.progress i{transition:none}}
+
+/* Portada */
+.title{font-size:clamp(2rem,5.2vw,4.4rem);line-height:1.05;font-weight:700;letter-spacing:-.03em;max-width:17ch}
+.sub{font-size:clamp(1.05rem,1.9vw,1.55rem);color:var(--muted);max-width:44ch;line-height:1.4}
+.mol{position:absolute;right:clamp(0px,4vw,70px);top:50%;transform:translateY(-50%);width:min(40vw,520px);opacity:.95;pointer-events:none}
+@media (max-width:899px){.mol{display:none}}
+
+/* Roles */
+.tree{position:relative;display:grid;gap:14px;grid-template-columns:repeat(3,minmax(0,1fr));padding-top:30px}
+.tree::before{content:"";position:absolute;left:16.6%;right:16.6%;top:14px;border-top:1px solid rgba(255,255,255,.3)}
+.tree>div{position:relative}
+.tree>div::before{content:"";position:absolute;left:50%;top:-16px;height:16px;border-left:1px solid rgba(255,255,255,.3)}
+@media (max-width:640px){.tree{grid-template-columns:1fr;padding-top:0}.tree::before,.tree>div::before{display:none}}
+.phone{width:min(100%,262px);margin:0 auto;border-radius:38px;border:9px solid #0A1620;background:#fff;color:#1B2733;box-shadow:0 30px 60px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.18);overflow:hidden}
+.phone .hd{background:#fff;border-bottom:1px solid #E4E9EE;padding:12px 14px;font-weight:700;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.phone .bd{padding:12px 14px;display:grid;gap:9px;background:#F6F8FA}
+.phone .f{background:#fff;border:1.5px solid #E4E9EE;border-radius:10px;padding:8px 10px;font-size:12px}
+.phone .f small{display:block;font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:#66768A;font-weight:600}
+.phone .res{background:#E9F1F7;border-radius:10px;padding:9px 10px;font:500 12px var(--mono);color:#0B3C5D}
+.phone .b{border-radius:10px;padding:11px;text-align:center;font-weight:600;font-size:12.5px}
+
+/* QR */
+.qrcard{position:relative;background:#fff;border-radius:22px;padding:14px;width:min(78vw,40vh,360px);aspect-ratio:1;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+.qrcard svg{display:block;width:100%;height:100%}
+.qrcard .qrmsg{height:100%;display:grid;place-items:center;text-align:center;color:#12293B;font:600 14px/1.4 var(--font);padding:12px}
+.qrcard::before,.qrcard::after{content:"";position:absolute;width:34px;height:34px;border:4px solid var(--gold)}
+.qrcard::before{left:-12px;top:-12px;border-right:0;border-bottom:0;border-radius:14px 0 0 0}
+.qrcard::after{right:-12px;bottom:-12px;border-left:0;border-top:0;border-radius:0 0 14px 0}
+.urlpill{display:flex;align-items:center;gap:10px;max-width:100%;padding:8px 8px 8px 16px;border-radius:99px;background:rgba(6,18,29,.55);border:1px solid var(--line)}
+.urlpill a{font:500 clamp(.8rem,1.5vw,1.05rem) var(--mono);color:var(--text);overflow-wrap:anywhere;text-decoration:none}
+.urlpill button{min-height:44px;padding:0 16px;border-radius:99px;border:0;background:var(--gold);color:#13202B;font:600 14px var(--font);cursor:pointer;display:inline-flex;gap:8px;align-items:center;flex:none}
+.qrgrid{display:grid;gap:22px;align-items:center}
+@media (min-width:1000px){.qrgrid{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}}
+.qrgrid .mid{display:flex;flex-direction:column;align-items:center;gap:20px;order:-1}
+@media (min-width:1000px){.qrgrid .mid{order:0}}
+
+/* Flujo, métricas, plan */
+.step{position:relative;padding:22px;display:flex;flex-direction:column;gap:12px}
+.step .n{font:600 13px var(--mono);color:var(--gold)}
+.arrow{display:none;color:var(--gold);font-size:26px;position:absolute;right:-20px;top:50%;transform:translateY(-50%);z-index:2}
+@media (min-width:1100px){.cols.c4 .step:not(:last-child) .arrow{display:block}}
+.wave{display:flex;align-items:center;gap:3px;height:34px}
+.wave i{display:block;width:4px;border-radius:2px;background:var(--gold)}
+.kpi-big{font:600 clamp(2.4rem,5vw,4rem)/1 var(--mono);letter-spacing:-.03em}
+.win{background:#fff;color:#1B2733;border-radius:18px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.45)}
+.win .tb{display:flex;align-items:center;gap:6px;padding:10px 14px;border-bottom:1px solid #E4E9EE;background:#fff;font-size:12px;color:#66768A}
+.win .tb i{width:10px;height:10px;border-radius:50%;background:#E4E9EE}
+.win .k{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px;background:#F6F8FA}
+.win .k div{background:#fff;border:1px solid #E4E9EE;border-radius:10px;padding:8px 10px}
+.win .k span{display:block;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:#66768A;font-weight:600}
+.win .k b{font:500 20px var(--mono);color:#0B3C5D}
+.tl{position:relative;display:grid;gap:16px}
+@media (min-width:900px){.tl{grid-template-columns:repeat(4,minmax(0,1fr));padding-top:34px}.tl::before{content:"";position:absolute;left:0;right:0;top:12px;border-top:2px dashed rgba(255,255,255,.28)}.tl>div::before{content:"";position:absolute;left:22px;top:-30px;width:16px;height:16px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 6px rgba(224,185,79,.2)}}
+.tl>div{position:relative;padding:22px}
+.tl .w{font:600 13px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></symbol>
+<symbol id="i-cam" viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+<symbol id="i-flask" viewBox="0 0 24 24"><path d="M10 2v7.5L4.5 19a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9.5V2"/><path d="M8.5 2h7M7 16h10"/></symbol>
+<symbol id="i-sheet" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8M8 9h2"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 16v-5M12 16V7M17 16v-8"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="m22 17-8.5-8.5-5 5L2 7"/><path d="M16 17h6v-6"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+<symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5M3 12a9 3 0 0 0 18 0"/></symbol>
+<symbol id="i-phone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M12 18h.01"/></symbol>
+<symbol id="i-laptop" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/></symbol>
+<symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="3" height="3"/><rect x="14" y="7" width="3" height="3"/><rect x="7" y="14" width="3" height="3"/><path d="M14 14h3v3"/></symbol>
+<symbol id="i-next" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="i-prev" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5V22h16"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+</defs></svg>
+<div class="bg" aria-hidden="true"></div>
+<!-- 1 · Portada -->
+<section class="slide on" id="s1" aria-label="Portada">
+  <svg class="mol" viewBox="0 0 400 400" aria-hidden="true" fill="none">
+    <circle cx="200" cy="200" r="186" stroke="rgba(255,255,255,.1)"/><circle cx="200" cy="200" r="140" stroke="rgba(255,255,255,.08)" stroke-dasharray="3 7"/>
+    <g stroke="#E0B94F" stroke-width="2.4" stroke-linecap="round"><path d="M200 120 269 160 269 240 200 280 131 240 131 160Z"/><path d="M269 160 340 118M131 240 58 282M200 280V352M200 120V48" stroke="rgba(255,255,255,.55)"/></g>
+    <circle cx="200" cy="200" r="46" stroke="rgba(224,185,79,.55)" stroke-dasharray="5 6" stroke-width="2"/>
+    <g fill="#B8C0C8"><circle cx="200" cy="120" r="8"/><circle cx="269" cy="160" r="8"/><circle cx="269" cy="240" r="8"/><circle cx="200" cy="280" r="8"/><circle cx="131" cy="240" r="8"/><circle cx="131" cy="160" r="8"/></g>
+    <circle cx="340" cy="118" r="15" fill="#2ECC71"/><circle cx="58" cy="282" r="13" fill="#E0B94F"/><circle cx="200" cy="352" r="17" fill="#1C6FA3" stroke="rgba(255,255,255,.4)"/><circle cx="200" cy="48" r="11" fill="#fff"/>
+  </svg>
+  <div class="wrap" style="position:relative">
+    <div class="flex items-center gap-3 text-[var(--gold)]"><svg class="ic" style="font-size:30px"><use href="#i-flask"/></svg><span class="eyebrow" style="color:var(--muted)">Instituto de Catálisis y Petroleoquímica · UAM</span></div>
+    <h1 class="title">Digitalización e Innovación en la Gestión de Laboratorio <span style="color:var(--gold)">(LIMS ICP-UAM)</span></h1>
+    <p class="sub">Optimizando la captura de datos: del cuaderno de papel al Dashboard analítico en tiempo real</p>
+    <div class="flex flex-wrap items-center gap-3 mt-2">
+      <div class="glass px-5 py-3"><span class="eyebrow" style="display:block;color:var(--muted);margin-bottom:6px">Presenta</span><b style="font-weight:600">Proyecto de Modernización LIMS</b></div>
+      <div class="glass px-5 py-3 mono" style="color:var(--muted)">Octubre 2026</div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 · Diagnóstico -->
+<section class="slide" id="s2" aria-label="El diagnóstico">
+  <div class="wrap">
+    <div><div class="eyebrow mb-3">El diagnóstico</div>
+    <h2 class="h2">El problema actual: cada dato se captura más de una vez y se pierde por el camino</h2></div>
+    <div class="flex flex-wrap items-center gap-3 text-sm" style="color:var(--muted)" aria-label="Flujo actual">
+      <span class="chip"><svg class="ic"><use href="#i-book"/></svg>Cuaderno de papel</span><svg class="ic" style="color:var(--gold)"><use href="#i-next"/></svg>
+      <span class="chip"><svg class="ic"><use href="#i-sheet"/></svg>Excel</span><svg class="ic" style="color:var(--gold)"><use href="#i-next"/></svg>
+      <span class="chip"><svg class="ic"><use href="#i-chart"/></svg>Gráficos manuales</span>
+    </div>
+    <div class="cols c3">
+      <article class="glass p-6 flex flex-col gap-4"><div class="icbox"><svg class="ic"><use href="#i-copy"/></svg></div>
+        <h3 class="text-xl font-semibold">Duplicidad de trabajo</h3>
+        <p style="color:var(--muted)">Cada fórmula se escribe en el laboratorio y se vuelve a teclear en una hoja de cálculo: cuaderno de papel, después Excel.</p>
+        <span class="chip gold self-start mt-auto">Doble captura</span></article>
+      <article class="glass p-6 flex flex-col gap-4"><div class="icbox"><svg class="ic"><use href="#i-alert"/></svg></div>
+        <h3 class="text-xl font-semibold">Riesgo de transcripción y pérdida de trazabilidad</h3>
+        <p style="color:var(--muted)">Un decimal mal copiado o una página extraviada rompe la trazabilidad de la fórmula y puede obligar a repetir el ensayo.</p>
+        <span class="chip gold self-start mt-auto">Trazabilidad en riesgo</span></article>
+      <article class="glass p-6 flex flex-col gap-4"><div class="icbox"><svg class="ic"><use href="#i-clock"/></svg></div>
+        <h3 class="text-xl font-semibold">Tiempo perdido en gráficos manuales</h3>
+        <p style="color:var(--muted)">Cada informe exige consolidar hojas y montar las gráficas a mano, lejos del momento de la medida.</p>
+        <span class="chip gold self-start mt-auto">Horas administrativas</span></article>
+    </div>
+  </div>
+</section>
+
+<!-- 3 · Solución -->
+<section class="slide" id="s3" aria-label="La solución propuesta">
+  <div class="wrap">
+    <div><div class="eyebrow mb-3">La solución propuesta</div>
+    <h2 class="h2">Un LIMS por roles, pensado para trabajar a pie de poyata</h2></div>
+    <div class="grid gap-8 lg:grid-cols-[1.35fr_.65fr] items-center">
+      <div class="flex flex-col gap-3">
+        <div class="glass p-5 flex items-center gap-4" style="border-color:rgba(224,185,79,.5)"><div class="icbox"><svg class="ic"><use href="#i-shield"/></svg></div>
+          <div><span class="chip gold">1 Administrador / IP</span><p class="mt-2" style="color:var(--text)">Valida o rechaza con comentarios, exporta a Excel y consulta métricas globales.</p></div></div>
+        <div class="tree">
+          <div class="glass p-4"><div class="mono text-xs" style="color:var(--gold)">TÉCNICO 1</div><b class="block mt-1">Preparación y síntesis</b><p class="text-sm mt-1" style="color:var(--muted)">Catalizadores, precursores y soportes.</p></div>
+          <div class="glass p-4"><div class="mono text-xs" style="color:var(--gold)">TÉCNICO 2</div><b class="block mt-1">Caracterización físico-química</b><p class="text-sm mt-1" style="color:var(--muted)">DRX, BET, TPR, TEM, XPS.</p></div>
+          <div class="glass p-4"><div class="mono text-xs" style="color:var(--gold)">TÉCNICO 3</div><b class="block mt-1">Actividad catalítica y reactores</b><p class="text-sm mt-1" style="color:var(--muted)">Conversión, selectividad, rendimiento.</p></div>
+        </div>
+        <div class="glass p-5 flex items-start gap-4 mt-1"><div class="icbox"><svg class="ic"><use href="#i-phone"/></svg></div>
+          <div><b>Mobile &amp; Tablet First</b><p style="color:var(--muted)">Registro a pie de poyata, con botones grandes aptos para guantes, dictado por voz y foto del cuaderno o de la muestra.</p></div></div>
+      </div>
+      <div class="phone" aria-label="Vista del técnico en el móvil">
+        <div class="hd"><span>Nuevo registro</span><span class="mono" style="font-size:10px;color:#66768A">ICP-26-0430</span></div>
+        <div class="bd">
+          <div class="f"><small>Reactivo</small>Ni(NO₃)₂·6H₂O</div>
+          <div class="f"><small>Cantidad</small><span class="mono">2,9079 g</span></div>
+          <div class="res">Molaridad en 100 mL<br><b style="font-size:16px">0,1000 mol/L</b></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="b" style="border:1.5px solid #0B3C5D;color:#0B3C5D">Dictar</div><div class="b" style="border:1.5px solid #0B3C5D;color:#0B3C5D">Foto</div></div>
+          <div class="b" style="background:#2ECC71;color:#06301A">Enviar a revisión</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · Demo en vivo -->
+<section class="slide" id="s4" aria-label="Demo en vivo con código QR">
+  <div class="wrap">
+    <div><div class="eyebrow mb-3">Demo en vivo</div>
+    <h2 class="h2" style="max-width:30ch">Pruébalo ahora mismo en tu móvil u ordenador</h2></div>
+    <div class="qrgrid">
+      <div class="glass p-6 flex flex-col gap-3"><div class="icbox"><svg class="ic"><use href="#i-scan"/></svg></div>
+        <h3 class="text-xl font-semibold">Con tu teléfono</h3>
+        <p style="color:var(--muted)">Escanea el código QR con la cámara de tu teléfono para probar la interfaz del técnico.</p></div>
+      <div class="mid">
+        <div class="qrcard" data-qr></div>
+        <div class="urlpill"><a id="demoUrl" href="../" target="_blank" rel="noopener">…</a>
+          <button type="button" id="copyBtn"><svg class="ic" style="font-size:18px"><use href="#i-copy"/></svg><span>Copiar</span></button></div>
+      </div>
+      <div class="glass p-6 flex flex-col gap-3"><div class="icbox"><svg class="ic"><use href="#i-laptop"/></svg></div>
+        <h3 class="text-xl font-semibold">Con tu portátil</h3>
+        <p style="color:var(--muted)">Entra al enlace para probar la vista de Administrador. El perfil se cambia desde la barra superior.</p></div>
+    </div>
+  </div>
+</section>
+<!-- 5 · Flujo del técnico -->
+<section class="slide" id="s5" aria-label="Flujo de trabajo del técnico">
+  <div class="wrap">
+    <div><div class="eyebrow mb-3">Flujo de trabajo del técnico</div>
+    <h2 class="h2" style="max-width:28ch">De la poyata al informe en cuatro pasos</h2></div>
+    <div class="cols c4">
+      <article class="glass step"><span class="n">PASO 1</span><div class="icbox"><svg class="ic"><use href="#i-mic"/></svg></div>
+        <h3 class="text-lg font-semibold">Entrada por voz o tacto</h3>
+        <div class="wave" aria-hidden="true"><i style="height:10px"></i><i style="height:22px"></i><i style="height:14px"></i><i style="height:30px"></i><i style="height:18px"></i><i style="height:34px"></i><i style="height:12px"></i><i style="height:26px"></i><i style="height:32px"></i><i style="height:16px"></i><i style="height:28px"></i><i style="height:10px"></i></div>
+        <p style="color:var(--muted)">Dicta las observaciones o toca los campos con botones grandes. Foto del cuaderno incluida.</p><span class="arrow"><svg class="ic"><use href="#i-next"/></svg></span></article>
+      <article class="glass step"><span class="n">PASO 2</span><div class="icbox"><svg class="ic"><use href="#i-flask"/></svg></div>
+        <h3 class="text-lg font-semibold">Cálculo estequiométrico automático</h3>
+        <div class="mono text-sm" style="color:var(--text);background:rgba(6,18,29,.45);border-radius:10px;padding:10px 12px">2,9079 g<br><span style="color:var(--gold)">→ 0,1000 mol/L</span></div>
+        <p style="color:var(--muted)">Masa, mmol, molaridad y carga metálica al instante, sin calculadora.</p><span class="arrow"><svg class="ic"><use href="#i-next"/></svg></span></article>
+      <article class="glass step"><span class="n">PASO 3</span><div class="icbox"><svg class="ic"><use href="#i-send"/></svg></div>
+        <h3 class="text-lg font-semibold">Envío al Administrador</h3>
+        <div class="flex flex-wrap gap-2"><span class="chip gold">Pendiente de revisión</span><span class="chip green"><svg class="ic"><use href="#i-check"/></svg>Aprobado</span></div>
+        <p style="color:var(--muted)">El IP aprueba o rechaza con comentarios, con la trazabilidad completa del registro.</p><span class="arrow"><svg class="ic"><use href="#i-next"/></svg></span></article>
+      <article class="glass step"><span class="n">PASO 4</span><div class="icbox"><svg class="ic"><use href="#i-sheet"/></svg></div>
+        <h3 class="text-lg font-semibold">Excel y gráficos automáticos</h3>
+        <svg viewBox="0 0 120 34" width="120" height="34" aria-hidden="true"><g fill="#E0B94F"><rect x="2" y="14" width="12" height="20" rx="2"/><rect x="20" y="8" width="12" height="26" rx="2"/><rect x="38" y="16" width="12" height="18" rx="2"/><rect x="56" y="3" width="12" height="31" rx="2"/><rect x="74" y="10" width="12" height="24" rx="2"/><rect x="92" y="6" width="12" height="28" rx="2"/></g></svg>
+        <p style="color:var(--muted)">Exportación a Excel y dashboards en tiempo real, sin rehacer nada.</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- 6 · Dashboard y métricas -->
+<section class="slide" id="s6" aria-label="Dashboard y métricas para el administrador">
+  <div class="wrap">
+    <div><div class="eyebrow mb-3">Dashboard y métricas para el administrador</div>
+    <h2 class="h2" style="max-width:30ch">Los datos llegan ya listos para decidir</h2></div>
+    <div class="grid gap-8 lg:grid-cols-[1.2fr_.8fr] items-center">
+      <div class="win" role="img" aria-label="Maqueta del dashboard con indicadores y rendimiento por lote">
+        <div class="tb"><i></i><i></i><i></i><span style="margin-left:8px;font-weight:600;color:#1B2733">LIMS · Dashboard y analítica</span></div>
+        <div class="k"><div><span>Registros</span><b>18</b></div><div><span>Aprobados</span><b>9</b></div><div><span>Rend. medio</span><b>79,6 %</b></div></div>
+        <div style="padding:6px 14px 12px">
+          <div style="font-size:12px;font-weight:600;margin:6px 0 2px">Rendimiento de reacciones por lote (%)</div>
+          <svg viewBox="0 0 360 150" width="100%" style="display:block;height:auto" aria-hidden="true">
+            <g stroke="#E4E9EE"><path d="M30 130H352M30 80H352M30 30H352"/></g>
+            <g fill="#66768A" font-size="9" text-anchor="end" font-family="IBM Plex Mono,monospace"><text x="24" y="133">0</text><text x="24" y="83">50</text><text x="24" y="33">100</text></g>
+            <g><rect x="34" y="36" width="18" height="94" rx="3" fill="#0B3C5D"/><rect x="58" y="39" width="18" height="91" rx="3" fill="#0B3C5D"/><rect x="82" y="42" width="18" height="88" rx="3" fill="#0B3C5D"/><rect x="106" y="59" width="18" height="71" rx="3" fill="#B3261E"/><rect x="130" y="56" width="18" height="74" rx="3" fill="#0B3C5D"/><rect x="154" y="49" width="18" height="81" rx="3" fill="#0B3C5D"/><rect x="178" y="44" width="18" height="86" rx="3" fill="#B8912F"/><rect x="202" y="47" width="18" height="83" rx="3" fill="#B8912F"/><rect x="226" y="62" width="18" height="68" rx="3" fill="#0B3C5D"/><rect x="250" y="71" width="18" height="59" rx="3" fill="#B8912F"/><rect x="274" y="40" width="18" height="90" rx="3" fill="#B8912F"/><rect x="298" y="67" width="18" height="63" rx="3" fill="#B8912F"/><rect x="322" y="43" width="18" height="87" rx="3" fill="#B8912F"/></g>
+          </svg>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#66768A;margin-top:2px"><span><b style="color:#0B3C5D">■</b> Aprobado</span><span><b style="color:#B8912F">■</b> Pendiente</span><span><b style="color:#B3261E">■</b> Rechazado</span><span style="margin-left:auto">Vista ilustrativa con datos de ejemplo</span></div>
+        </div>
+      </div>
+      <div class="flex flex-col gap-4">
+        <article class="glass p-5"><div class="flex items-center justify-between gap-3"><span class="kpi-big" style="color:var(--green)">−45%</span><span class="chip gold">Objetivo del piloto</span></div>
+          <h3 class="font-semibold mt-2">Tiempo administrativo</h3><p style="color:var(--muted)">Sin segunda transcripción ni gráficos manuales.</p></article>
+        <article class="glass p-5"><div class="flex items-center justify-between gap-3"><span class="kpi-big" style="color:var(--green)">0%</span><span class="chip gold">Objetivo del piloto</span></div>
+          <h3 class="font-semibold mt-2">Errores de transcripción</h3><p style="color:var(--muted)">El dato se captura una sola vez, en origen.</p></article>
+        <article class="glass p-5 flex items-start gap-4"><div class="icbox"><svg class="ic"><use href="#i-search"/></svg></div>
+          <div><h3 class="font-semibold">Consulta centralizada de fórmulas históricas</h3><p style="color:var(--muted)">Todo en un único sistema, filtrable por fecha y proyecto.</p></div></article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 · Plan de implantación -->
+<section class="slide" id="s7" aria-label="Plan de implantación">
+  <div class="wrap">
+    <div><div class="eyebrow mb-3">Plan de implantación</div>
+    <h2 class="h2" style="max-width:28ch">Pilotaje sin riesgos: 30 días hasta el despliegue total</h2></div>
+    <div class="tl">
+      <div class="glass"><div class="w">Semana 1</div><h3 class="text-lg font-semibold mt-2">Ajuste de plantillas</h3><p class="mt-1" style="color:var(--muted)">Catálogo de reactivos, proyectos y campos de cada perfil técnico.</p></div>
+      <div class="glass"><div class="w">Semana 2</div><h3 class="text-lg font-semibold mt-2">Piloto con 3 técnicos</h3><p class="mt-1" style="color:var(--muted)">Uso real a pie de poyata, con el cuaderno en paralelo.</p></div>
+      <div class="glass"><div class="w">Semana 3</div><h3 class="text-lg font-semibold mt-2">Evaluación y ajustes</h3><p class="mt-1" style="color:var(--muted)">Revisión de incidencias, tiempos y comentarios del IP.</p></div>
+      <div class="glass" style="border-color:rgba(46,204,113,.5)"><div class="w" style="color:var(--green)">Semana 4</div><h3 class="text-lg font-semibold mt-2">Despliegue total</h3><p class="mt-1" style="color:var(--muted)">Formación al resto del equipo y paso al uso habitual.</p></div>
+    </div>
+    <div class="glass p-5 flex items-center gap-4"><div class="icbox"><svg class="ic"><use href="#i-shield"/></svg></div>
+      <p><b>Sin riesgos:</b> <span style="color:var(--muted)">el cuaderno de papel sigue vigente en paralelo hasta que el piloto valide el sistema.</span></p></div>
+  </div>
+</section>
+
+<!-- 8 · Cierre -->
+<section class="slide" id="s8" aria-label="Cierre y preguntas">
+  <div class="wrap">
+    <div class="grid gap-10 lg:grid-cols-[1.3fr_.7fr] items-center">
+      <div class="flex flex-col gap-6">
+        <div class="eyebrow">Cierre y preguntas</div>
+        <h2 class="title" style="font-size:clamp(2rem,4.6vw,3.8rem);max-width:15ch">Aprobemos la fase piloto</h2>
+        <div class="glass p-6" style="border-color:rgba(224,185,79,.55)">
+          <span class="chip gold">Decisión solicitada</span>
+          <p class="mt-3 text-xl" style="line-height:1.35">Autorizar un piloto de 30 días con 3 técnicos y 1 Administrador / IP.</p>
+        </div>
+        <p class="text-2xl font-semibold" style="color:var(--gold)">¿Preguntas?</p>
+      </div>
+      <div class="flex flex-col items-center gap-4">
+        <div class="qrcard" style="width:min(60vw,34vh,240px)" data-qr></div>
+        <p class="text-sm text-center" style="color:var(--muted)">Escanéalo y prueba la demo</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="hint">← → para navegar · F pantalla completa</div>
+<div class="bar">
+  <div class="count" aria-live="polite"><b id="cur">1</b> / <span id="tot">8</span></div>
+  <div class="flex gap-3">
+    <button class="nav-b" id="prev" type="button" aria-label="Diapositiva anterior"><svg class="ic"><use href="#i-prev"/></svg><span>Anterior</span></button>
+    <button class="nav-b next" id="next" type="button" aria-label="Diapositiva siguiente"><span>Siguiente</span><svg class="ic"><use href="#i-next"/></svg></button>
+  </div>
+</div>
+<div class="progress" role="progressbar" aria-label="Progreso de la presentación" aria-valuemin="1" aria-valuemax="8" aria-valuenow="1"><i id="pbar"></i></div>
+<script src="../assets/qrcode.js"></script>
+<script>
+/* Enlace de la demo. Vacío = se calcula solo a partir del dominio donde está publicada la presentación (raíz del sitio).
+   Si quieres forzar otro, escríbelo aquí, por ejemplo: 'https://lims-icp.uam.es/demo' */
+var DEMO_URL='';
+(function(){
+  var url=DEMO_URL;
+  if(!url&&/^https?:$/.test(location.protocol))url=location.origin+'/';
+  var a=document.getElementById('demoUrl');
+  if(url){a.href=url;a.textContent=url.replace(/\/$/,'')}else{a.removeAttribute('href');a.textContent='Publica el sitio para generar el enlace'}
+  [].forEach.call(document.querySelectorAll('[data-qr]'),function(box){
+    if(!url||typeof qrcode!=='function'){box.innerHTML='<div class="qrmsg">El QR aparecerá al abrir la presentación desde su dirección web.</div>';return}
+    var qr=qrcode(0,'M');qr.addData(url);qr.make();
+    var n=qr.getModuleCount(),m=2,s=n+2*m,d='';
+    for(var r=0;r<n;r++)for(var c2=0;c2<n;c2++)if(qr.isDark(r,c2))d+='M'+(c2+m)+' '+(r+m)+'h1v1h-1z';
+    box.innerHTML='<svg viewBox="0 0 '+s+' '+s+'" shape-rendering="crispEdges" role="img" aria-label="Código QR que abre '+url+'"><rect width="'+s+'" height="'+s+'" fill="#fff"/><path d="'+d+'" fill="#0B1B2B"/></svg>';
+  });
+})();
+</script>
+<script>
+(function(){
+  var slides=[].slice.call(document.querySelectorAll('.slide')),N=slides.length,i=0;
+  function $(id){return document.getElementById(id)}
+  $('tot').textContent=N;
+  function go(n){
+    n=Math.max(0,Math.min(N-1,n));i=n;
+    slides.forEach(function(s,k){s.classList.toggle('on',k===n);s.classList.toggle('before',k<n);if(k!==n)s.scrollTop=0});
+    $('cur').textContent=n+1;$('pbar').style.width=((n+1)/N*100)+'%';
+    $('pbar').parentElement.setAttribute('aria-valuenow',n+1);
+    $('prev').disabled=n===0;$('next').disabled=n===N-1;
+    try{history.replaceState(null,'','#'+(n+1))}catch(e){}
+  }
+  $('prev').onclick=function(){go(i-1)};$('next').onclick=function(){go(i+1)};
+  addEventListener('keydown',function(e){
+    if(e.altKey||e.ctrlKey||e.metaKey)return;
+    var k=e.key;
+    if(k==='ArrowRight'||k==='PageDown'||(k===' '&&e.target===document.body)){e.preventDefault();go(i+1)}
+    else if(k==='ArrowLeft'||k==='PageUp'){e.preventDefault();go(i-1)}
+    else if(k==='Home'){go(0)}else if(k==='End'){go(N-1)}
+    else if(k==='f'||k==='F'){try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen().catch(function(){})}catch(err){}}
+  });
+  var sx=0,sy=0;
+  addEventListener('touchstart',function(e){sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+  addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)go(i+(dx<0?1:-1))},{passive:true});
+  $('copyBtn').onclick=function(){
+    var b=$('copyBtn').querySelector('span'),u=$('demoUrl');
+    function flash(t){b.textContent=t;setTimeout(function(){b.textContent='Copiar'},2000)}
+    try{navigator.clipboard.writeText(u.href||u.textContent).then(function(){flash('Copiado')},sel)}catch(e){sel()}
+    function sel(){var r=document.createRange();r.selectNodeContents(u);var s=getSelection();s.removeAllRanges();s.addRange(r);flash('Selecciona y copia')}
+  };
+  var h=parseInt((location.hash||'').slice(1),10);go(h>=1&&h<=N?h-1:0);
+})();
+</script>
+</body>
+</html>
